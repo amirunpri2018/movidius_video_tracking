@@ -11,6 +11,9 @@ def scale_box(box, width, height):
     x, y, w, h = box # coco format
     return [x * width, y * height, w * width, h * height]
 
+def get_boxes(results):
+    """get box from list of dicts"""
+    return [r['box'] for r in results]
 
 class Pipeline():
     
@@ -26,9 +29,11 @@ class Pipeline():
 
         # get boxes 
         t0 = perf_counter()
-        boxes = self.detector.detect(pp_frame)
+        results = self.detector.detect(pp_frame)
         print("detect timer: %f" % (perf_counter() - t0))
-
+        print("    results: %s" % results)
+        boxes = get_boxes(results)
+        
         # normalize boxes
         width, height, _ = frame.shape
         boxes = [scale_box(box, width, height) for box in boxes]

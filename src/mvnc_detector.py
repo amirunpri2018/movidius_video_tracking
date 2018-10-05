@@ -30,7 +30,7 @@ class BaseDetector():
         """resize images for input tensor and normalize to [-1, 1]"""
         return normalize(image, self.input_size)
         
-    def predict(self, image):
+    def detect(self, image):
         resized_image = self._preprocess(image)
         input_tensor = resized_image.astype(np.float16)
         # send to NCS
