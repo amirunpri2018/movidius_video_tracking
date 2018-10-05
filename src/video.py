@@ -4,7 +4,7 @@ from mvnc import mvncapi
 
 from src.utils import resize_image, draw_boxes, GREEN, BLUE
 from src.pipeline import Pipeline
-from src.mvnc_detector import VOCDetector
+from src.mvnc_detector import Detector
 
 def process(video_in, video_out, pipeline, headless=True):
     """Run video through pipeline"""
@@ -54,8 +54,8 @@ def init_device():
     return device 
 
 def setup_detector(device, detector_name=None):
-    """Setup detector"""    
-    detector = VOCDetector(device)
+    """Setup detector"""
+    detector = Detector('./models/voc2012/config.yml', device)
     return detector
 
 

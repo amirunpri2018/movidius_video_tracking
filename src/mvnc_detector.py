@@ -1,17 +1,20 @@
 from mvnc import mvncapi
+import yaml
 import numpy as np
 import cv2
+        
+class Detector():
 
-
-class BaseDetector():
-
-    def __init__(self, device):
+    def __init__(self, config_path, device):
         """Base Detector class for Movidius
         """
-        self.graph_name = None
-        self.graph_path = None
-        self.input_size = (0, 0)
-        self.score_threshold = 0.60
+        config = yaml.load(open(config_path))
+        self.graph_name = config['graph_name']
+        self.graph_path = config['graph_path']
+        self.input_size = config['input_size']
+        self.score_threshold = config['score_threshold']
+        self.box_size_threshold = config['box_size_threshold']
+
         self._setup(device)
 
     def _setup(self, device):
@@ -44,8 +47,13 @@ class BaseDetector():
         return results
 
     def _postprocess(self, results):
-        """Filter results with low confidence"""
-        filtered = [r for r in results if r['score'] >= self.score_threshold]
+        """Filter results with low confidence and small boxes"""
+        def pass_filter(r):
+            pass_score_filter = r['score'] >= self.score_threshold
+            pass_size_filter = get_box_size(r['box']) >= self.box_size_threshold
+            return pass_score_filter and pass_size_filter 
+        
+        filtered = [r for r in results if pass_filter(r)]
         return filtered
 
     def close(self):
@@ -54,19 +62,6 @@ class BaseDetector():
         self.graph.destroy()
 
 
-##
-## Model implementations 
-##
-
-class VOCDetector(BaseDetector):
-
-    def __init__(self, device):
-        self.graph_path = "./models/voc2012/graph"
-        self.graph_name = "voc_ssd_mobilenets_graph"
-        self.input_size = (300, 300)
-        self.score_threshold = 0.60
-        self._setup(device)    
-                
 
 ##
 ## Util functions
@@ -93,6 +88,9 @@ def clip_box(box):
     y2 = min(1, y2)
     return [x1, y1, x2, y2]
 
+def get_box_size(box):
+    x, y, w, h = box
+    return w * h 
 
 def xyxy_to_xywh(box):
     x1, y1, x2, y2 = box

@@ -1,0 +1,7 @@
+graph_path: "./models/voc2012/graph"
+graph_name: "voc_ssd_mobilenets_graph"
+input_size: 
+    - 300
+    - 300
+score_threshold: 0.60
+box_size_threshold: 0.0001
