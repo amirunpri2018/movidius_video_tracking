@@ -2,9 +2,11 @@ import cv2
 import sys
 from mvnc import mvncapi
 
-from src.utils import resize_image, draw_boxes, GREEN, BLUE
+from src.utils import resize_image, draw_boxes
+from src.box_utils import scale_box
 from src.pipeline import Pipeline
 from src.mvnc_detector import Detector
+from src.iou_tracker import IOUTracker
 
 def process(video_in, video_out, pipeline, headless=True):
     """Run video through pipeline"""
@@ -20,15 +22,12 @@ def process(video_in, video_out, pipeline, headless=True):
                 break
         
         # main loop
-        boxes, detected_new = pipeline.boxes_for_frame(frame)
-
-        # logging
-        state = "DETECTOR" if detected_new else "TRACKING"
-        print("[%s] boxes: %s" % (state, boxes))
-
-        # update screen
-        color = GREEN if detected_new else BLUE
-        draw_boxes(frame, boxes, color)
+        tracks = pipeline.forward(frame)
+        print("tracks: %s" % tracks)
+        boxes = [track['box'] for track in tracks]
+        boxes = [scale_box(box, frame) for box in boxes]
+        print("boxes: %s" % boxes)
+        frame = draw_boxes(frame, boxes)
 
         # display resulting frame
         if not headless:
@@ -58,6 +57,8 @@ def setup_detector(device, detector_name=None):
     detector = Detector('./models/voc2012/config.yml', device)
     return detector
 
+def setup_tracker():
+    return IOUTracker()
 
 def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
     """
@@ -83,16 +84,20 @@ def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
     
     # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     video_out = cv2.VideoWriter(output_filepath, 
-        cv2.VideoWriter_fourcc('M','J','P','G'), 
-        10, 
+        cv2.VideoWriter_fourcc(*'MPEG'), 
+        20., 
         (frame_width,frame_height))
 
     # init detector
     device = init_device()
     detector = setup_detector(device, detector_name)
 
+    # init tracker
+    tracker = setup_tracker()
+
     # init detection pipeline
-    pipeline = Pipeline(detector=detector, event_interval=event_interval)
+    # TODO: pass image_size config  
+    pipeline = Pipeline(detector=detector, tracker=tracker, resize_image_size=(300,300))
 
     # run processing
     process(video_capture, video_out, pipeline, headless=False)
@@ -102,6 +107,7 @@ def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
     cv2.destroyAllWindows()
 
     # shutdown device
+    detector.close()
     device.close()
     device.destroy()
 

@@ -2,6 +2,7 @@ from mvnc import mvncapi
 import yaml
 import numpy as np
 import cv2
+from src.box_utils import clip_box, get_box_size
         
 class Detector():
 
@@ -80,22 +81,9 @@ def normalize(image, dim):
     img = img * 0.007843
     return img
 
-def clip_box(box):
-    x1, y1, x2, y2 = box
-    x1 = max(0, x1)
-    y1 = max(0, y1)
-    x2 = min(1, x2)
-    y2 = min(1, y2)
-    return [x1, y1, x2, y2]
-
-def get_box_size(box):
-    x, y, w, h = box
-    return w * h 
-
-def xyxy_to_xywh(box):
-    x1, y1, x2, y2 = box
-    return [x1, y1, x2 - x1, y2 - y1]
-
+def get_boxes(results):
+    """get box from list of dicts"""
+    return [r['box'] for r in results]
 
 def read_output(output):
     """extract valid boxes from NCS output"""
@@ -121,8 +109,6 @@ def read_output(output):
         # box in x1, y1, x2, y2 format
         box = output[base_index + 3], output[base_index + 4], output[base_index + 5], output[base_index + 6]
         box = clip_box(box)
-        box = xyxy_to_xywh(box)
-
         # result
         result = {'class_id': class_id, 'score': score, 'box': box}
         results.append(result)

@@ -4,6 +4,7 @@
 import cv2
 import numpy as np
 import tensorflow as tf
+from .box_utils import xywh_to_xyxy
 
 class Detector():
 
@@ -118,6 +119,7 @@ if __name__ == '__main__':
     width, height, _ = image.shape
     boxes = [scale_box(box, width, height) for box in boxes]
     # draw
+    boxes = [xywh_to_xyxy(box) for box in boxes] # convert to xyxy format
     image = draw_boxes(image, boxes, GREEN)
     # save
     cv2.imwrite(args.output_filepath, image)

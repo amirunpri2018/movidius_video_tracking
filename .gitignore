@@ -119,3 +119,6 @@ dev_venv/
 tmp/
 data/
 out/
+
+# models
+models/
