@@ -4,8 +4,8 @@ Bounding Box util functions
 
 def scale_box(box, image):
     x1, y1, x2, y2 = box
-    width, height, _ = image.shape
-    scaled = [x1 * width, y2 * height, x2 * width, y2 * height]
+    height, width, _ = image.shape
+    scaled = [x1 * width, y1 * height, x2 * width, y2 * height]
     scaled = [int(s) for s in scaled]
     return scaled
     
