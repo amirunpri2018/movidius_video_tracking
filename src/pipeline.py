@@ -26,7 +26,10 @@ class Pipeline():
         print("    results: %s" % results)
 
         # update trackers
+        t0 = perf_counter()
         tracks = self.tracker.track(results)
+        print("track timer: %f" % (perf_counter() - t0))
+        print("    tracks: %s" % tracks)
         return tracks
 
     def get_boxes(self):

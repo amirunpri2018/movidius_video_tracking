@@ -23,7 +23,6 @@ def process(video_in, video_out, pipeline, headless=True):
         
         # main loop
         tracks = pipeline.forward(frame)
-        print("tracks: %s" % tracks)
         boxes = [track['box'] for track in tracks]
         boxes = [scale_box(box, frame) for box in boxes]
         print("boxes: %s" % boxes)
