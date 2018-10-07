@@ -1,10 +1,12 @@
 """ Sample Detector using Tensorflow SSD Mobilenet COCO detector
 """
-
+import logging
 import cv2
 import numpy as np
 import tensorflow as tf
 from .box_utils import xywh_to_xyxy
+
+logger = logging.getLogger(__name__)
 
 class Detector():
 
@@ -110,7 +112,7 @@ if __name__ == '__main__':
     detector = Detector(args.model_path)
     t0 = perf_counter()
     boxes = detector.detect(pp_image)
-    print("detect timer: %f" % (perf_counter() - t0))
+    logger.info("detect timer: %f" % (perf_counter() - t0))
 
     # scale boxes back to image size
     def scale_box(box, width, height):

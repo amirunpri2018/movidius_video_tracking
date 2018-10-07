@@ -1,5 +1,8 @@
 import cv2
 import sys
+import logging
+import yaml
+
 from mvnc import mvncapi
 
 from src.utils import resize_image, draw_boxes
@@ -7,13 +10,16 @@ from src.box_utils import scale_box
 from src.pipeline import Pipeline
 from src.mvnc_detector import Detector
 from src.iou_tracker import IOUTracker
+from src.inference import write_api
 
-def process(video_in, video_out, pipeline, headless=True):
+logger = logging.getLogger(__name__)
+
+def process(video_in, pipeline, video_out=None, headless=True, inference=True):
     """Run video through pipeline"""
     while video_in.isOpened():
         ok, frame = video_in.read()
         if not ok:
-            print('Error reading video')
+            logger.error('Error reading video')
             break
 
         # quit
@@ -25,15 +31,20 @@ def process(video_in, video_out, pipeline, headless=True):
         tracks = pipeline.forward(frame)
         boxes = [track['box'] for track in tracks]
         boxes = [scale_box(box, frame) for box in boxes]
-        print("boxes: %s" % boxes)
+        logger.debug("boxes: %s" % boxes)
         frame = draw_boxes(frame, boxes)
+
+        # inference mode - write data to api
+        if inference:
+            write_api(tracks)
 
         # display resulting frame
         if not headless:
             cv2.imshow('Video', frame)
 
         # Write the frame into output file
-        video_out.write(frame)
+        if video_out:
+            video_out.write(frame)
 
 
 def init_device():
@@ -41,7 +52,7 @@ def init_device():
     # we need at least one
     device_list = mvncapi.enumerate_devices()
     if len(device_list) == 0:
-        print('No devices found')
+        logger.error('No devices found')
         quit()
 
     # Pick the first stick to run the network
@@ -51,21 +62,21 @@ def init_device():
     device.open()
     return device 
 
-def setup_detector(device, detector_name=None):
+def setup_detector(detector_dir, device):
     """Setup detector"""
-    detector = Detector('./models/voc2012/config.yml', device)
+    detector = Detector(detector_dir, device)
     return detector
 
 def setup_tracker():
     return IOUTracker()
 
-def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
+def run_video(input_filepath, detector_dir, output_filepath=None):
     """
     Args:
         input_filepath: input video filepath. Set to 0 for webcam, or other device no.
-        output_filepath: filepath to save result video
-        detector_name: detector to be used
-        event_interval: delay between each detector call, default=6 seconds.
+        detector_dir: path to detector model and config files. 
+        output_filepath: filepath to save result video, set to None to disable saving 
+                to disk.Default=None.
     """
     if input_filepath == "0":
         input_filepath = 0
@@ -73,7 +84,7 @@ def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
 
     # exit if video not opened
     if not video_capture.isOpened():
-        print('Cannot open video')
+        logger.error('Cannot open video')
         sys.exit()
     
     # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -82,14 +93,16 @@ def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
     frame_height = int(video_capture.get(4))
     
     # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
-    video_out = cv2.VideoWriter(output_filepath, 
-        cv2.VideoWriter_fourcc(*'MPEG'), 
-        20., 
-        (frame_width,frame_height))
+    video_out = None
+    if output_filepath:
+        video_out = cv2.VideoWriter(output_filepath, 
+            cv2.VideoWriter_fourcc(*'MPEG'), 
+            20., 
+            (frame_width,frame_height))
 
     # init detector
     device = init_device()
-    detector = setup_detector(device, detector_name)
+    detector = setup_detector(detector_dir, device)
 
     # init tracker
     tracker = setup_tracker()
@@ -99,7 +112,7 @@ def run_video(input_filepath, output_filepath, detector_name, event_interval=6):
     pipeline = Pipeline(detector=detector, tracker=tracker, resize_image_size=(300,300))
 
     # run processing
-    process(video_capture, video_out, pipeline, headless=False)
+    process(video_capture, pipeline, video_out=video_out, headless=False)
 
     # When everything is done, release the capture
     video_capture.release()
@@ -118,17 +131,15 @@ if __name__ == '__main__':
     parser.add_argument("--input_filepath", "-i", type=str,
         action='store',
         help='Input filepath')
+    parser.add_argument("--config", "-c", type=str, 
+        action="store",
+        help="Config file path, default=./CONFIG")
     parser.add_argument("--output_filepath", "-o", type=str,
         action='store',
         help='Output filepath')
-    parser.add_argument("--detector", "-d", type=str,
-        action='store',
-        help='Detector model, [voc|mscoco|safety]')
-    parser.add_argument("--interval", "-n", type=int,
-        action='store',
-        default=6,
-        help='Detection interval in seconds, default=6')
-
     args = parser.parse_args()
-    run_video(args.input_filepath, args.output_filepath, args.detector, 
-        args.interval)
+
+    config = yaml.load(open("./CONFIG", "rb"))
+    detector_dir = config.get("model_dir")
+
+    run_video(args.input_filepath, detector_dir, output_filepath=args.output_filepath)

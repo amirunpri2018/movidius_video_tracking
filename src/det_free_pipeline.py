@@ -6,7 +6,9 @@ import datetime
 from time import perf_counter
 import cv2
 import numpy as np
+import logging
 
+logger = logging.getLogger(__name__)
 
 def scale_box(box, width, height):
     x, y, w, h = box # coco format
@@ -32,8 +34,8 @@ class Pipeline():
         # get boxes 
         t0 = perf_counter()
         results = self.detector.detect(pp_frame)
-        print("detect timer: %f" % (perf_counter() - t0))
-        print("    results: %s" % results)
+        logger.info("detect timer: %f" % (perf_counter() - t0))
+        logger.info("    results: %s" % results)
         boxes = get_boxes(results)
         
         # normalize boxes

@@ -3,9 +3,11 @@ Detection-based tracking pipeline
 """
 import datetime
 from time import perf_counter
+import logging
 import cv2
 import numpy as np
 
+logger = logging.getLogger(__name__)
 
 class Pipeline():
     
@@ -22,14 +24,14 @@ class Pipeline():
         # get boxes 
         t0 = perf_counter()
         results = self.detector.detect(pp_frame)
-        print("detect timer: %f" % (perf_counter() - t0))
-        print("    results: %s" % results)
+        logger.info("detect timer: %f" % (perf_counter() - t0))
+        logger.info("    results: %s" % results)
 
         # update trackers
         t0 = perf_counter()
         tracks = self.tracker.track(results)
-        print("track timer: %f" % (perf_counter() - t0))
-        print("    tracks: %s" % tracks)
+        logger.info("track timer: %f" % (perf_counter() - t0))
+        logger.info("    tracks: %s" % tracks)
         return tracks
 
     def get_boxes(self):

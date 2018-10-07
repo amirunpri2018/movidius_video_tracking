@@ -1,9 +1,13 @@
-from mvnc import mvncapi
 import yaml
+import logging
+
+from mvnc import mvncapi
 import numpy as np
 import cv2
+
 from src.box_utils import clip_box, get_box_size
-        
+logger = logging.getLogger(__name__)
+
 class Detector():
 
     def __init__(self, config_path, device):
@@ -99,7 +103,7 @@ def read_output(output):
                 not np.isfinite(output[base_index + 5]) or
                 not np.isfinite(output[base_index + 6])):
             # boxes with non infinite (inf, nan, etc) numbers must be ignored
-            print('box at index: ' + str(box_index) + ' has nonfinite data, ignoring it')
+            logger.warning('box at index: ' + str(box_index) + ' has nonfinite data, ignoring it')
             continue
 
         # class_id

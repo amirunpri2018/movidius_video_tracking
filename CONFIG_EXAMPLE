@@ -1,0 +1,6 @@
+api:
+    host_url: "http://127.0.0.1:5000/api/v1"
+    tracks_endpoint: "/tracks"
+
+model_dir: "./models/voc2012/"
+device_id: "0"

@@ -8,7 +8,8 @@ def create_track(detect_result):
         'score': detect_result['score'], 
         'class_id': detect_result['class_id'],
         'track_id': uuid.uuid4().hex[:6],
-        'frames': 1
+        'frames': 1,
+        'active': 1
         }
 
 def update_track(track, detect_result):
@@ -68,6 +69,7 @@ class IOUTracker():
             if len(updated_tracks) == 0 or track is not updated_tracks[-1]:
                 # finish track when the conditions are met
                 if track['max_score'] >= self.sigma_h and track['frames'] >= self.t_min:
+                    track['active'] = 0 # deactivate
                     self.tracks_finished.append(track)
 
         # create new tracks
