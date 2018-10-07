@@ -109,12 +109,13 @@ def read_output(output):
         # class_id
         class_id = int(output[base_index + 1])
         # score
-        score = output[base_index + 2]
+        score = float(output[base_index + 2])
         # box in x1, y1, x2, y2 format
-        box = output[base_index + 3], output[base_index + 4], output[base_index + 5], output[base_index + 6]
+        box = output[base_index+3:base_index+7]
+        box = [float(x) for x in box]
         box = clip_box(box)
         # result
-        result = {'class_id': class_id, 'score': score, 'box': box}
+        result = {'class_id': class_id, 'score': float(score), 'box': box}
         results.append(result)
 
     return results
