@@ -94,7 +94,7 @@ def run_video(input_filepath, detector_config, output_filepath=None):
     
     # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     video_out = None
-    if len(output_filepath) > 0:
+    if output_filepath is not None:
         video_out = cv2.VideoWriter(output_filepath, 
             cv2.VideoWriter_fourcc(*'MPEG'), 
             20., 
