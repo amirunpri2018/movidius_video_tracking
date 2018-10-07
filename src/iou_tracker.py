@@ -19,7 +19,8 @@ def update_track(track, detect_result):
         'score': detect_result['score'], 
         'class_id': detect_result['class_id'],
         'track_id': track['track_id'],
-        'frames': track['frames'] + 1
+        'frames': track['frames'] + 1,
+        'active': 1
         }
 
 class IOUTracker():
