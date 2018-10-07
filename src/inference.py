@@ -23,4 +23,4 @@ def write_api(tracks):
     resp = requests.post(url, json=payload)
     
     logger.info("post to %s" % url)
-    logger.info("[%s] %s" % (resp.status, resp.json()))
+    logger.info("[%s] %s" % (resp.status_code, resp.json()))
