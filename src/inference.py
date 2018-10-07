@@ -20,7 +20,10 @@ def write_api(tracks):
     host_url = api_config.get('host_url', '127.0.0.1:5000')
     tracks_endpoint = api_config.get('tracks_endpoint', '/tracks')
     url = host_url + tracks_endpoint
-    resp = requests.post(url, json=payload)
-    
-    logger.info("post to %s" % url)
-    logger.info("[%s] %s" % (resp.status_code, resp.json()))
+
+    try:
+        resp = requests.post(url, json=payload)
+        logger.info("post to %s" % url)
+        logger.info("[%s] %s" % (resp.status_code, resp.json()))
+    except:
+        pass
