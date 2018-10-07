@@ -24,8 +24,12 @@ Additionally requires:
 
 #### Inference Mode
 
+````
+$ python -m src.video -i 0 -c CONFIG
+````
+
 #### Test Mode
 
 ````
-$ python -m src.video -i 0 -o tmp/test.mov -d voc
+$ python -m src.video -i 0 -o tmp/test.mov -c CONFIG
 ````

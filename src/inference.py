@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 def write_api(tracks):
     # insert device_id 
-    tracks['device_id'] = config.get("device_id", "0")
+    for track in tracks:
+        track['device_id'] = config.get("device_id", "0")
     payload = {"tracks": tracks}
 
     # api url 

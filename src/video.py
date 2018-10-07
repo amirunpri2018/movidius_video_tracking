@@ -62,19 +62,19 @@ def init_device():
     device.open()
     return device 
 
-def setup_detector(detector_dir, device):
+def setup_detector(detector_config, device):
     """Setup detector"""
-    detector = Detector(detector_dir, device)
+    detector = Detector(detector_config, device)
     return detector
 
 def setup_tracker():
     return IOUTracker()
 
-def run_video(input_filepath, detector_dir, output_filepath=None):
+def run_video(input_filepath, detector_config, output_filepath=None):
     """
     Args:
         input_filepath: input video filepath. Set to 0 for webcam, or other device no.
-        detector_dir: path to detector model and config files. 
+        detector_config: path to detector config file. 
         output_filepath: filepath to save result video, set to None to disable saving 
                 to disk.Default=None.
     """
@@ -94,7 +94,7 @@ def run_video(input_filepath, detector_dir, output_filepath=None):
     
     # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     video_out = None
-    if output_filepath:
+    if len(output_filepath) > 0:
         video_out = cv2.VideoWriter(output_filepath, 
             cv2.VideoWriter_fourcc(*'MPEG'), 
             20., 
@@ -102,7 +102,7 @@ def run_video(input_filepath, detector_dir, output_filepath=None):
 
     # init detector
     device = init_device()
-    detector = setup_detector(detector_dir, device)
+    detector = setup_detector(detector_config, device)
 
     # init tracker
     tracker = setup_tracker()
@@ -135,11 +135,12 @@ if __name__ == '__main__':
         action="store",
         help="Config file path, default=./CONFIG")
     parser.add_argument("--output_filepath", "-o", type=str,
+        default=None, 
         action='store',
         help='Output filepath')
     args = parser.parse_args()
 
     config = yaml.load(open("./CONFIG", "rb"))
-    detector_dir = config.get("model_dir")
+    detector_config = config.get("detector_config")
 
-    run_video(args.input_filepath, detector_dir, output_filepath=args.output_filepath)
+    run_video(args.input_filepath, detector_config, output_filepath=args.output_filepath)
